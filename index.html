@@ -10,25 +10,59 @@
         rel="stylesheet">
     <style>
         :root {
+            --bg: #FFC5D3;
+            --surface: #FFDBE5;
+            --surface2: #FFF0F4;
+            --border: rgba(180, 90, 120, 0.15);
+            --border2: rgba(180, 90, 120, 0.25);
+            --border-hover: rgba(180, 90, 120, 0.4);
+            --text: #4d2b36;
+            --muted: #825a67;
+            --faint: #b893a0;
+
+            --shadow-tooltip: 0 4px 16px rgba(130, 40, 70, 0.15);
+            --shadow-cell: 0 14px 36px rgba(130, 40, 70, 0.15);
+            
+            --glow1: rgba(255, 255, 255, 0.5);
+            --glow2: rgba(255, 240, 245, 0.5);
+            --glow-op: 0.4;
+            --glow-op-hv: 0.7;
+
+            --est: #C687B4;
+            --herr: #8BAEE0;
+            --ing: #78C49E;
+            --inv: #A9CC76;
+            --matd: #D9B575;
+            --mat2: #E09C7B;
+            --tall: #DE8DAE;
+            
+            --g1: #A85775;
+            --g2: #9B4B67;
+            --g3: #8E405A;
+            --g4: #80344D;
+            --g5: #732A40;
+            --g6: #661F34;
+            --g7: linear-gradient(135deg,#661F34,#4d2b36);
+        }
+
+        [data-theme="dark"] {
             --bg: #1a1020;
             --surface: #221530;
             --surface2: #2a1a3a;
             --border: rgba(255, 210, 230, 0.1);
             --border2: rgba(255, 210, 230, 0.18);
+            --border-hover: rgba(247, 184, 208, 0.28);
             --text: #f5e6f0;
             --muted: rgba(245, 230, 240, 0.4);
             --faint: rgba(245, 230, 240, 0.12);
+            
+            --shadow-tooltip: 0 4px 16px rgba(0, 0, 0, 0.4);
+            --shadow-cell: 0 14px 36px rgba(0, 0, 0, 0.55);
 
-            --p1: #f7b8d0;
-            /* rose pastel */
-            --p2: #f5c5db;
-            --p3: #e8b4d8;
-            /* lavender pink */
-            --p4: #f9cce2;
-            --p5: #f2a8c8;
-            --p6: #e0b0f0;
-            /* soft lilac */
-            --p7: #fac8e0;
+            --glow1: rgba(240, 160, 210, 0.07);
+            --glow2: rgba(180, 140, 220, 0.06);
+            --glow-op: 0.28;
+            --glow-op-hv: 0.45;
 
             --est: #e8b4d8;
             --herr: #b8d0f7;
@@ -37,6 +71,14 @@
             --matd: #f7d8b0;
             --mat2: #f7c0a8;
             --tall: #f7b8d0;
+            
+            --g1: #e8b4d8;
+            --g2: #f5c5db;
+            --g3: #f5a8c5;
+            --g4: #f09ab8;
+            --g5: #e880a8;
+            --g6: #e060a0;
+            --g7: linear-gradient(135deg,#f7b8d0,#d0a0f0);
         }
 
         * {
@@ -59,10 +101,44 @@
             position: fixed;
             inset: 0;
             background-image:
-                radial-gradient(ellipse 60% 40% at 20% 10%, rgba(240, 160, 210, 0.07) 0%, transparent 60%),
-                radial-gradient(ellipse 50% 50% at 80% 90%, rgba(180, 140, 220, 0.06) 0%, transparent 60%);
+                radial-gradient(ellipse 60% 40% at 20% 10%, var(--glow1) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 50% at 80% 90%, var(--glow2) 0%, transparent 60%);
             pointer-events: none;
             z-index: 0;
+        }
+
+        /* ── Header Theme Toggle ── */
+        .theme-toggle {
+            cursor: pointer;
+            background: var(--surface2);
+            border: 0.5px solid var(--border2);
+            border-radius: 20px;
+            padding: 6px 12px;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 12px;
+            transition: all 0.2s;
+        }
+        .theme-toggle:hover {
+            border-color: var(--border-hover);
+        }
+
+        /* ── Course Filter Hover ── */
+        .leg-item {
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s;
+        }
+        .leg-item:hover {
+            transform: scale(1.02);
+            border-color: var(--border-hover);
+        }
+        .leg-item.inactive {
+            opacity: 0.4;
         }
 
         /* ── Global tooltip layer ── */
@@ -70,8 +146,8 @@
             position: fixed;
             pointer-events: none;
             z-index: 9999;
-            background: #2a1a3a;
-            border: 0.5px solid rgba(247, 184, 208, 0.35);
+            background: var(--surface2);
+            border: 0.5px solid var(--border2);
             color: var(--text);
             font-size: 11px;
             font-family: 'DM Sans', sans-serif;
@@ -80,7 +156,7 @@
             white-space: nowrap;
             opacity: 0;
             transition: opacity 0.12s;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+            box-shadow: var(--shadow-tooltip);
         }
 
         #tooltip.show {
@@ -105,10 +181,7 @@
             font-size: clamp(26px, 5vw, 42px);
             letter-spacing: -0.03em;
             line-height: 1.05;
-            background: linear-gradient(135deg, #f5e6f0 20%, #e8b4d8 60%, #b8a0e8 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: var(--text);
             margin-bottom: 8px;
         }
 
@@ -177,7 +250,7 @@
         }
 
         .date-row input[type="date"]:focus {
-            border-color: rgba(247, 184, 208, 0.5);
+            border-color: rgba(180, 90, 120, 0.5);
         }
 
         .date-hint {
@@ -260,7 +333,7 @@
         }
 
         .week-cell {
-            background: var(--surface);
+            background: var(--surface2);
             border: 0.5px solid var(--border);
             border-radius: 14px;
             padding: 12px 8px 10px;
@@ -278,8 +351,8 @@
 
         .week-cell:not(.empty):hover {
             transform: translateY(-4px);
-            box-shadow: 0 14px 36px rgba(0, 0, 0, 0.55);
-            border-color: rgba(247, 184, 208, 0.28);
+            box-shadow: var(--shadow-cell);
+            border-color: var(--border-hover);
         }
 
         .week-cell.empty {
@@ -295,13 +368,13 @@
             border-radius: 50%;
             transform: translateX(-50%);
             filter: blur(20px);
-            opacity: 0.28;
+            opacity: var(--glow-op);
             pointer-events: none;
             transition: opacity 0.2s;
         }
 
         .week-cell:hover .cell-glow {
-            opacity: 0.45;
+            opacity: var(--glow-op-hv);
         }
 
         .week-num {
@@ -388,6 +461,9 @@
                 <div class="meta-badge">Semana pico: <span>18</span></div>
                 <div class="meta-badge">Semanas libres: <span>3</span></div>
             </div>
+            <button class="theme-toggle" id="theme-toggle">
+                Tema Oscuro
+            </button>
         </div>
 
         <!-- <div class="date-row">
@@ -410,14 +486,17 @@
     <script>
         /* ── Data ── */
         const courses = {
-            est: { name: 'Estadística Descriptiva', color: '#e8b4d8', repl: false },
-            herr: { name: 'Herramientas Informáticas', color: '#b4ccf5', repl: true },
-            ing: { name: 'Inglés III', color: '#a8e0c0', repl: false },
-            inv: { name: 'Investigación Académica', color: '#c4e898', repl: false },
-            matd: { name: 'Matemática Discreta', color: '#f5d8a0', repl: false },
-            mat2: { name: 'Matemática II', color: '#f5bca0', repl: true },
-            tall: { name: 'Taller de Programación', color: '#f7b8d0', repl: false },
+            est: { name: 'Estadística Descriptiva', var: '--est', repl: false },
+            herr: { name: 'Herramientas Informáticas', var: '--herr', repl: true },
+            ing: { name: 'Inglés III', var: '--ing', repl: false },
+            inv: { name: 'Investigación Académica', var: '--inv', repl: false },
+            matd: { name: 'Matemática Discreta', var: '--matd', repl: false },
+            mat2: { name: 'Matemática II', var: '--mat2', repl: true },
+            tall: { name: 'Taller de Programación', var: '--tall', repl: false },
         };
+
+        /* ── Filter State ── */
+        let currentFilter = null;
 
         const weeks = {
             1: [], 2: [], 3: [],
@@ -481,20 +560,44 @@
             const div = document.createElement('div');
             div.className = 'leg-item';
             div.innerHTML = `
-    <div class="leg-dot" style="background:${c.color};box-shadow:0 0 6px ${c.color}88"></div>
+    <div class="leg-dot" style="background:var(${c.var});box-shadow:0 0 6px var(${c.var})"></div>
     <span class="leg-name">${c.name}</span>
     <span class="leg-tag">${count} eval.</span>`;
+            div.addEventListener('click', () => {
+                if (currentFilter === k) {
+                    currentFilter = null; // deselect
+                } else {
+                    currentFilter = k; // select
+                }
+                updateFilters();
+                buildCells();
+            });
+            div.dataset.course = k;
             leg.appendChild(div);
         });
         document.getElementById('total-count').textContent = total;
+
+        function updateFilters() {
+            document.querySelectorAll('.leg-item').forEach(el => {
+                if (currentFilter) {
+                    el.classList.toggle('inactive', el.dataset.course !== currentFilter);
+                } else {
+                    el.classList.remove('inactive');
+                }
+            });
+        }
 
         /* ── Calendar cells ── */
         const cal = document.getElementById('cal');
 
         function buildCells() {
             cal.innerHTML = '';
+            let visibleTotal = 0;
+
             for (let w = 1; w <= 18; w++) {
-                const exams = weeks[w] || [];
+                const allExams = weeks[w] || [];
+                const exams = currentFilter ? allExams.filter(([id]) => id === currentFilter) : allExams;
+                visibleTotal += exams.length;
                 const n = exams.length;
                 const delay = ((w - 1) * 0.035).toFixed(2);
 
@@ -504,7 +607,7 @@
 
                 if (n > 0) {
                     // pick dominant glow color from first eval
-                    const gc = courses[exams[0][0]].color;
+                    const gc = `var(${courses[exams[0][0]].var})`;
                     const glowEl = document.createElement('div');
                     glowEl.className = 'cell-glow';
                     glowEl.style.background = gc;
@@ -522,18 +625,14 @@
                     const countEl = document.createElement('div');
                     countEl.className = 'eval-count';
                     // gradient text based on load
-                    const gradients = {
-                        1: '#e8b4d8', 2: '#f5c5db', 3: '#f5a8c5',
-                        4: '#f09ab8', 5: '#e880a8', 6: '#e060a0',
-                        7: 'linear-gradient(135deg,#f7b8d0,#d0a0f0)'
-                    };
-                    if (n === 7) {
-                        countEl.style.background = 'linear-gradient(135deg,#f7b8d0,#d0a0f0)';
+                    const limit = Math.min(n, 7);
+                    if (limit === 7) {
+                        countEl.style.background = 'var(--g7)';
                         countEl.style.webkitBackgroundClip = 'text';
                         countEl.style.webkitTextFillColor = 'transparent';
                         countEl.style.backgroundClip = 'text';
                     } else {
-                        countEl.style.color = gradients[n] || '#f7b8d0';
+                        countEl.style.color = `var(--g${limit})`;
                     }
                     countEl.textContent = n === 1 ? '1 evaluación' : `${n} evaluaciones`;
                     div.appendChild(countEl);
@@ -544,7 +643,7 @@
                     for (const [id, abbr, fullName] of exams) {
                         const dot = document.createElement('div');
                         dot.className = 'dot';
-                        dot.style.cssText = `background:${courses[id].color};box-shadow:0 0 5px ${courses[id].color}99`;
+                        dot.style.cssText = `background:var(${courses[id].var});box-shadow:0 0 5px var(${courses[id].var})`;
                         dot.addEventListener('mouseenter', e => showTip(e, `${courses[id].name}: ${fullName}`));
                         dot.addEventListener('mousemove', moveTip);
                         dot.addEventListener('mouseleave', hideTip);
@@ -593,12 +692,23 @@
 
                 cal.appendChild(div);
             }
+            document.getElementById('total-count').textContent = visibleTotal;
         }
 
         buildCells();
 
-        // Rebuild on date change to keep gcal links live
-        document.getElementById('start-date').addEventListener('change', () => { });
+        // Theme Toggle Logic
+        const themeToggle = document.getElementById('theme-toggle');
+        themeToggle.addEventListener('click', () => {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            if (isDark) {
+                document.documentElement.removeAttribute('data-theme');
+                themeToggle.textContent = 'Tema Oscuro';
+            } else {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                themeToggle.textContent = 'Tema Claro';
+            }
+        });
     </script>
 </body>
 
