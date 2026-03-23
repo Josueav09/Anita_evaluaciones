@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendario de Evaluaciones</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #1a1020;
+            --surface: #221530;
+            --surface2: #2a1a3a;
+            --border: rgba(255, 210, 230, 0.1);
+            --border2: rgba(255, 210, 230, 0.18);
+            --text: #f5e6f0;
+            --muted: rgba(245, 230, 240, 0.4);
+            --faint: rgba(245, 230, 240, 0.12);
+
+            --p1: #f7b8d0;
+            /* rose pastel */
+            --p2: #f5c5db;
+            --p3: #e8b4d8;
+            /* lavender pink */
+            --p4: #f9cce2;
+            --p5: #f2a8c8;
+            --p6: #e0b0f0;
+            /* soft lilac */
+            --p7: #fac8e0;
+
+            --est: #e8b4d8;
+            --herr: #b8d0f7;
+            --ing: #b4e8cc;
+            --inv: #c8e8a0;
+            --matd: #f7d8b0;
+            --mat2: #f7c0a8;
+            --tall: #f7b8d0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 36px 24px 60px;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                radial-gradient(ellipse 60% 40% at 20% 10%, rgba(240, 160, 210, 0.07) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 50% at 80% 90%, rgba(180, 140, 220, 0.06) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── Global tooltip layer ── */
+        #tooltip {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            background: #2a1a3a;
+            border: 0.5px solid rgba(247, 184, 208, 0.35);
+            color: var(--text);
+            font-size: 11px;
+            font-family: 'DM Sans', sans-serif;
+            padding: 5px 10px;
+            border-radius: 8px;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.12s;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        #tooltip.show {
+            opacity: 1;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── Header ── */
+        .header {
+            margin-bottom: 32px;
+        }
+
+        .header h1 {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: clamp(26px, 5vw, 42px);
+            letter-spacing: -0.03em;
+            line-height: 1.05;
+            background: linear-gradient(135deg, #f5e6f0 20%, #e8b4d8 60%, #b8a0e8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 13px;
+            color: var(--muted);
+            font-weight: 300;
+        }
+
+        .header-meta {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .meta-badge {
+            font-family: 'Syne', sans-serif;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 5px 12px;
+            border-radius: 100px;
+            background: var(--surface2);
+            border: 0.5px solid var(--border2);
+            color: var(--muted);
+        }
+
+        .meta-badge span {
+            color: var(--text);
+        }
+
+        /* ── Date picker ── */
+        .date-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--surface);
+            border: 0.5px solid var(--border2);
+            border-radius: 14px;
+            padding: 14px 18px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .date-row label {
+            font-family: 'Syne', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .date-row input[type="date"] {
+            background: var(--surface2);
+            border: 0.5px solid var(--border2);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .date-row input[type="date"]:focus {
+            border-color: rgba(247, 184, 208, 0.5);
+        }
+
+        .date-hint {
+            font-size: 11px;
+            color: var(--muted);
+            flex: 1;
+        }
+
+        /* ── Legend ── */
+        .legend-section {
+            background: var(--surface);
+            border: 0.5px solid var(--border);
+            border-radius: 16px;
+            padding: 18px 20px;
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 12px;
+        }
+
+        .legend-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 7px;
+        }
+
+        .leg-item {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            background: var(--surface2);
+            border: 0.5px solid var(--border);
+            border-radius: 9px;
+            padding: 8px 11px;
+        }
+
+        .leg-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .leg-name {
+            font-size: 11.5px;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .leg-tag {
+            margin-left: auto;
+            font-size: 10px;
+            font-family: 'Syne', sans-serif;
+            font-weight: 600;
+            color: var(--muted);
+            flex-shrink: 0;
+        }
+
+        /* ── Calendar grid ── */
+        .cal-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            margin-bottom: 32px;
+        }
+
+        @media (max-width: 580px) {
+            .cal-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .week-cell {
+            background: var(--surface);
+            border: 0.5px solid var(--border);
+            border-radius: 14px;
+            padding: 12px 8px 10px;
+            min-height: 108px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            position: relative;
+            overflow: hidden;
+            animation: fadeUp 0.45s both;
+            cursor: default;
+        }
+
+        .week-cell:not(.empty):hover {
+            transform: translateY(-4px);
+            box-shadow: 0 14px 36px rgba(0, 0, 0, 0.55);
+            border-color: rgba(247, 184, 208, 0.28);
+        }
+
+        .week-cell.empty {
+            opacity: 0.28;
+        }
+
+        .cell-glow {
+            position: absolute;
+            bottom: -24px;
+            left: 50%;
+            width: 70%;
+            height: 55px;
+            border-radius: 50%;
+            transform: translateX(-50%);
+            filter: blur(20px);
+            opacity: 0.28;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        .week-cell:hover .cell-glow {
+            opacity: 0.45;
+        }
+
+        .week-num {
+            font-family: 'Syne', sans-serif;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--muted);
+            z-index: 1;
+        }
+
+        /* Replaced the A's → pill with count + "eval" */
+        .eval-count {
+            font-family: 'Syne', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            z-index: 1;
+            line-height: 1;
+        }
+
+        .dots-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            justify-content: center;
+            z-index: 1;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            transition: transform 0.15s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .week-cell:hover .dot {
+            transform: scale(1.3);
+        }
+
+        .eval-names {
+            font-size: 8px;
+            color: var(--muted);
+            text-align: center;
+            line-height: 1.5;
+            z-index: 1;
+            font-weight: 400;
+        }
+
+
+
+        .footer {
+            text-align: center;
+            font-size: 11px;
+            color: var(--faint);
+            letter-spacing: 0.04em;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(14px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="tooltip"></div>
+    <div class="container">
+
+        <div class="header">
+            <h1>Calendario de<br>Evaluaciones</h1>
+            <p>Semestre académico · 18 semanas · 7 cursos</p>
+            <div class="header-meta">
+                <div class="meta-badge">Total: <span id="total-count">–</span> evaluaciones</div>
+                <div class="meta-badge">Semana pico: <span>18</span></div>
+                <div class="meta-badge">Semanas libres: <span>3</span></div>
+            </div>
+        </div>
+
+        <!-- <div class="date-row">
+            <label>Inicio del semestre</label>
+            <input type="date" id="start-date" />
+            <span class="date-hint">Selecciona la fecha del primer lunes para habilitar "Agregar a Google
+                Calendar"</span>
+        </div> -->
+
+        <div class="legend-section">
+            <div class="section-title">Cursos</div>
+            <div class="legend-grid" id="legend"></div>
+        </div>
+
+        <div class="cal-grid" id="cal"></div>
+        <!-- <div class="footer">Pasa el cursor sobre los puntos para ver el curso · Haz clic en "+ Google Cal" para agregar
+        </div> -->
+    </div>
+
+    <script>
+        /* ── Data ── */
+        const courses = {
+            est: { name: 'Estadística Descriptiva', color: '#e8b4d8', repl: false },
+            herr: { name: 'Herramientas Informáticas', color: '#b4ccf5', repl: true },
+            ing: { name: 'Inglés III', color: '#a8e0c0', repl: false },
+            inv: { name: 'Investigación Académica', color: '#c4e898', repl: false },
+            matd: { name: 'Matemática Discreta', color: '#f5d8a0', repl: false },
+            mat2: { name: 'Matemática II', color: '#f5bca0', repl: true },
+            tall: { name: 'Taller de Programación', color: '#f7b8d0', repl: false },
+        };
+
+        const weeks = {
+            1: [], 2: [], 3: [],
+            4: [['est', 'PC1', 'Práctica Calificada 1'], ['mat2', 'TA', 'Tarea Académica']],
+            5: [['ing', 'TA1', 'Tarea Académica 1'], ['matd', 'TA1', 'Tarea Académica 1'], ['tall', 'PC1', 'Práctica Calificada 1']],
+            6: [['inv', 'AIF1', 'Avance de Informe 1'], ['mat2', 'PC1', 'Práctica Calificada 1']],
+            7: [['est', 'PC2', 'Práctica Calificada 2']],
+            8: [['herr', 'PC1', 'Práctica Calificada 1']],
+            9: [['ing', 'TA2', 'Tarea Académica 2']],
+            10: [['est', 'APF', 'Avance Proyecto Final'], ['matd', 'TA2', 'Tarea Académica 2'], ['mat2', 'EXPA', 'Examen Parcial'], ['tall', 'PC2', 'Práctica Calificada 2']],
+            11: [['inv', 'AIF2', 'Avance de Informe 2']],
+            12: [['matd', 'APF', 'Avance Proyecto Final']],
+            13: [['est', 'PC3', 'Práctica Calificada 3'], ['herr', 'PC2', 'Práctica Calificada 2'], ['ing', 'TA3', 'Tarea Académica 3']],
+            14: [['mat2', 'PC2', 'Práctica Calificada 2']],
+            15: [['inv', 'AIF3', 'Avance de Informe 3'], ['matd', 'TA3', 'Tarea Académica 3'], ['tall', 'PC3', 'Práctica Calificada 3']],
+            16: [['est', 'PA', 'Participación en Clase']],
+            17: [['herr', 'PA', 'Participación en Clase'], ['ing', 'PA', 'Participación en Clase'], ['mat2', 'PA', 'Participación en Clase'], ['tall', 'PA', 'Participación en Clase']],
+            18: [['est', 'PROY', 'Proyecto Final'], ['herr', 'EXFN', 'Examen Final'], ['ing', 'PROY', 'Proyecto Final'], ['inv', 'IF', 'Informe Final'], ['matd', 'PROY', 'Proyecto Final'], ['mat2', 'EXFN', 'Examen Final'], ['tall', 'PROY', 'Proyecto Final']]
+        };
+
+        /* ── Tooltip ── */
+        const tooltip = document.getElementById('tooltip');
+        function showTip(e, text) {
+            tooltip.textContent = text;
+            tooltip.classList.add('show');
+            moveTip(e);
+        }
+        function moveTip(e) {
+            const x = e.clientX + 12, y = e.clientY - 32;
+            tooltip.style.left = Math.min(x, window.innerWidth - tooltip.offsetWidth - 12) + 'px';
+            tooltip.style.top = Math.max(y, 8) + 'px';
+        }
+        function hideTip() { tooltip.classList.remove('show'); }
+
+        /* ── Google Calendar URL ── */
+        function getWeekDate(weekNum) {
+            const input = document.getElementById('start-date').value;
+            if (!input) return null;
+            const start = new Date(input + 'T00:00:00');
+            const d = new Date(start);
+            d.setDate(d.getDate() + (weekNum - 1) * 7);
+            return d;
+        }
+        function toGCalDate(d) {
+            return d.toISOString().replace(/-|:|\.\d{3}/g, '').slice(0, 8);
+        }
+        function gcalUrl(title, weekNum) {
+            const d = getWeekDate(weekNum);
+            if (!d) return null;
+            const start = toGCalDate(d);
+            const end = toGCalDate(new Date(d.getTime() + 86400000));
+            return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${start}/${end}`;
+        }
+
+        /* ── Legend ── */
+        const leg = document.getElementById('legend');
+        let total = 0;
+        Object.entries(courses).forEach(([k, c]) => {
+            const count = Object.values(weeks).flat().filter(([id]) => id === k).length;
+            total += count;
+            const div = document.createElement('div');
+            div.className = 'leg-item';
+            div.innerHTML = `
+    <div class="leg-dot" style="background:${c.color};box-shadow:0 0 6px ${c.color}88"></div>
+    <span class="leg-name">${c.name}</span>
+    <span class="leg-tag">${count} eval.</span>`;
+            leg.appendChild(div);
+        });
+        document.getElementById('total-count').textContent = total;
+
+        /* ── Calendar cells ── */
+        const cal = document.getElementById('cal');
+
+        function buildCells() {
+            cal.innerHTML = '';
+            for (let w = 1; w <= 18; w++) {
+                const exams = weeks[w] || [];
+                const n = exams.length;
+                const delay = ((w - 1) * 0.035).toFixed(2);
+
+                const div = document.createElement('div');
+                div.className = 'week-cell' + (n === 0 ? ' empty' : '');
+                div.style.animationDelay = `${delay}s`;
+
+                if (n > 0) {
+                    // pick dominant glow color from first eval
+                    const gc = courses[exams[0][0]].color;
+                    const glowEl = document.createElement('div');
+                    glowEl.className = 'cell-glow';
+                    glowEl.style.background = gc;
+                    div.appendChild(glowEl);
+                }
+
+                // Week label
+                const wn = document.createElement('span');
+                wn.className = 'week-num';
+                wn.textContent = `Semana ${w}`;
+                div.appendChild(wn);
+
+                if (n > 0) {
+                    // Count pill
+                    const countEl = document.createElement('div');
+                    countEl.className = 'eval-count';
+                    // gradient text based on load
+                    const gradients = {
+                        1: '#e8b4d8', 2: '#f5c5db', 3: '#f5a8c5',
+                        4: '#f09ab8', 5: '#e880a8', 6: '#e060a0',
+                        7: 'linear-gradient(135deg,#f7b8d0,#d0a0f0)'
+                    };
+                    if (n === 7) {
+                        countEl.style.background = 'linear-gradient(135deg,#f7b8d0,#d0a0f0)';
+                        countEl.style.webkitBackgroundClip = 'text';
+                        countEl.style.webkitTextFillColor = 'transparent';
+                        countEl.style.backgroundClip = 'text';
+                    } else {
+                        countEl.style.color = gradients[n] || '#f7b8d0';
+                    }
+                    countEl.textContent = n === 1 ? '1 evaluación' : `${n} evaluaciones`;
+                    div.appendChild(countEl);
+
+                    // Dots
+                    const dr = document.createElement('div');
+                    dr.className = 'dots-row';
+                    for (const [id, abbr, fullName] of exams) {
+                        const dot = document.createElement('div');
+                        dot.className = 'dot';
+                        dot.style.cssText = `background:${courses[id].color};box-shadow:0 0 5px ${courses[id].color}99`;
+                        dot.addEventListener('mouseenter', e => showTip(e, `${courses[id].name}: ${fullName}`));
+                        dot.addEventListener('mousemove', moveTip);
+                        dot.addEventListener('mouseleave', hideTip);
+                        dr.appendChild(dot);
+                    }
+                    div.appendChild(dr);
+
+                    // Eval abbreviations
+                    const el = document.createElement('div');
+                    el.className = 'eval-names';
+                    el.textContent = exams.map(([, a]) => a).join(' · ');
+                    div.appendChild(el);
+
+                    // Google Calendar button
+                    const btn = document.createElement('a');
+                    btn.className = 'gcal-btn';
+                    // btn.innerHTML = `<span class="gcal-icon">📅</span> + Google Cal`;
+                    btn.target = '_blank';
+                    btn.rel = 'noopener';
+                    btn.addEventListener('click', e => {
+                        const date = getWeekDate(w);
+                        if (!date) {
+                            e.preventDefault();
+                            alert('Primero selecciona la fecha de inicio del semestre.');
+                            return;
+                        }
+                        // If multiple events, open all
+                        const urls = exams.map(([id, abbr, fullName]) =>
+                            gcalUrl(`${courses[id].name} – ${fullName}`, w)
+                        ).filter(Boolean);
+                        if (urls.length === 1) {
+                            btn.href = urls[0];
+                        } else {
+                            e.preventDefault();
+                            urls.forEach((url, i) => setTimeout(() => window.open(url, '_blank'), i * 300));
+                        }
+                    });
+                    div.appendChild(btn);
+
+                } else {
+                    const dash = document.createElement('span');
+                    dash.style.cssText = 'font-size:18px;opacity:0.18;margin-top:6px';
+                    dash.textContent = '—';
+                    div.appendChild(dash);
+                }
+
+                cal.appendChild(div);
+            }
+        }
+
+        buildCells();
+
+        // Rebuild on date change to keep gcal links live
+        document.getElementById('start-date').addEventListener('change', () => { });
+    </script>
+</body>
+
+</html>
